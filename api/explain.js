@@ -12,8 +12,11 @@
 
 import { PATTERNS } from "../lib/patterns.js";
 
-// Gemini free-tier model. Fast and free for this use.
-const GEMINI_MODEL = "gemini-2.0-flash";
+// Gemini free-tier model. If one name errors, swap to the other:
+//   "gemini-3-flash-preview"  (newest, shown in AI Studio)
+//   "gemini-2.5-flash"        (stable fallback)
+//   "gemini-2.5-flash-lite"   (highest free rate limit)
+const GEMINI_MODEL = "gemini-2.5-flash";
 const MAX_SOURCE_CHARS = 60000;
 
 /* ---------- source fetch (Sourcify, then Etherscan) ---------- */
@@ -96,7 +99,10 @@ ${trimmed}`;
     }),
   });
 
-  if (!res.ok) throw new Error(`AI service error ${res.status}`);
+  if (!res.ok) {
+    const body = await res.text();
+    throw new Error(`Gemini ${res.status}: ${body.slice(0, 300)}`);
+  }
   const data = await res.json();
   const text = data?.candidates?.[0]?.content?.parts?.[0]?.text || "";
   try {
@@ -140,7 +146,9 @@ export default async function handler(req, res) {
 
     const heuristics = scanSource(source);
     let ai = null;
-    try { ai = await aiAnalyze(source, heuristics); } catch (e) { /* fall back to heuristics */ }
+    let aiError = null;
+    try { ai = await aiAnalyze(source, heuristics); }
+    catch (e) { aiError = e.message; }
 
     res.status(200).json({
       label,
@@ -149,6 +157,7 @@ export default async function handler(req, res) {
       risks: ai?.risks?.length ? ai.risks : heuristics,
       gas: ai?.gas || [],
       aiUsed: !!ai,
+      aiError: aiError,
     });
   } catch (err) {
     res.status(500).json({ error: err.message || "Something went wrong." });
