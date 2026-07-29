@@ -211,15 +211,6 @@
     .road-col li::before { content:""; position:absolute; left:0; top:8px; width:8px; height:8px; border-radius:50%; border:1.5px solid var(--gray-2); }
     .road-col li.done { color:var(--gray); text-decoration:line-through; text-decoration-color:rgba(139,147,164,0.5); }
     .road-col li.done::before { background:var(--mint); border-color:var(--mint); }
-
-    /* resources */
-    .res-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
-    .res-card { display:block; background:var(--panel); border:1px solid var(--line); border-radius:16px; padding:34px 32px; transition:border-color .2s, transform .2s; }
-    .res-card:hover { transform:translateY(-3px); border-color:rgba(91,140,255,0.45); }
-    .res-top { display:flex; align-items:center; gap:14px; margin-bottom:12px; }
-    .res-card h3 { font-size:22px; }
-    .soon { font-family:var(--mono); font-size:10px; letter-spacing:.12em; text-transform:uppercase; color:var(--cobalt); border:1px solid rgba(91,140,255,0.35); background:rgba(91,140,255,0.07); border-radius:999px; padding:4px 11px; }
-    .res-card p { color:var(--gray); font-size:14px; max-width:52ch; }
     .res-arrow { font-family:var(--mono); color:var(--cobalt); font-size:13px; margin-top:16px; display:inline-block; }
 
     /* faq */
@@ -301,9 +292,8 @@
       <nav class="nav-links" aria-label="Primary">
         <a href="#product">Product</a>
         <a href="#how">How it works</a>
-        <a href="#agents">For agents</a>
         <a href="#roadmap">Roadmap</a>
-        <a href="/blog/">Blog</a>
+        <a href="/litepaper/">Litepaper</a>
         <a href="/docs/">Docs</a>
       </nav>
       <div class="nav-cta">
@@ -475,30 +465,10 @@ x402-price: <span class="c">0.002 USDC</span>
       </div>
     </section>
 
-    <!-- ============ RESOURCES ============ -->
-    <section class="sec shell rv" id="resources">
-      <div class="sec-head">
-        <span class="sec-idx">// 05 resources</span>
-        <h2>Learn the craft, not just the tool.</h2>
-      </div>
-      <div class="res-grid">
-        <a class="res-card" href="/blog/">
-          <div class="res-top"><h3>Blog</h3><span class="soon">Coming soon</span></div>
-          <p>Plain-English breakdowns of real exploits, gas patterns, and how contracts actually get drained.</p>
-          <span class="res-arrow">/blog</span>
-        </a>
-        <a class="res-card" href="/docs/">
-          <div class="res-top"><h3>Docs</h3><span class="soon">Coming soon</span></div>
-          <p>Every command, every flag, every supported chain, and how to wire Sigil into your pipeline.</p>
-          <span class="res-arrow">/docs</span>
-        </a>
-      </div>
-    </section>
-
     <!-- ============ FAQ ============ -->
     <section class="sec shell rv" id="faq">
       <div class="sec-head">
-        <span class="sec-idx">// 06 faq</span>
+        <span class="sec-idx">// 05 faq</span>
         <h2>Common questions</h2>
       </div>
       <div class="faq-wrap">
@@ -550,6 +520,7 @@ x402-price: <span class="c">0.002 USDC</span>
         <a href="/try">Try</a>
         <a href="/blog/">Blog</a>
         <a href="/docs/">Docs</a>
+        <a href="/litepaper/">Litepaper</a>
         <a href="#faq">FAQ</a>
         <a href="https://github.com" target="_blank" rel="noreferrer">GitHub</a>
         <a href="https://x.com" target="_blank" rel="noreferrer">X</a>
