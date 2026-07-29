@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>Try Sigil: Explain any smart contract</title>
+  <meta name="description" content="Paste a contract address and Sigil returns a plain-English summary, exploit pattern flags and gas notes. Free to try." />
+  <link rel="canonical" href="https://sigil-website.vercel.app/try" />
+  <meta property="og:title" content="Try Sigil: Explain any smart contract" />
+  <meta property="og:description" content="Paste a contract address, get the summary, risk flags and gas notes." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://sigil-website.vercel.app/try" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+  <style>
+    :root {
+      --void:#060709; --panel:#0D0E12; --panel-2:#12141A;
+      --line:rgba(255,255,255,0.07); --line-strong:rgba(255,255,255,0.14);
+      --white:#F4F5F7; --gray:#8F96A3; --cobalt:#5B8CFF; --cobalt-deep:#3D6BF3;
+      --risk:#FF7A7A; --warn:#F5C86B; --pass:#51D98B;
+      --display:'Space Grotesk',system-ui,sans-serif; --body:'Inter',system-ui,sans-serif; --mono:'JetBrains Mono',ui-monospace,monospace;
+    }
+    * { box-sizing:border-box; margin:0; padding:0; }
+    body { background:var(--void); color:var(--white); font-family:var(--body); line-height:1.6; -webkit-font-smoothing:antialiased; min-height:100vh; }
+    a { color:inherit; text-decoration:none; }
+    a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visible { outline:2px solid var(--cobalt); outline-offset:3px; border-radius:6px; }
+    h1,h2,h3 { font-family:var(--display); font-weight:600; letter-spacing:-0.03em; }
+
+    .atmo { position:fixed; inset:0; pointer-events:none; z-index:0;
+      background:radial-gradient(900px 480px at 50% -10%, rgba(91,140,255,0.10), transparent 65%); }
+    header, main { position:relative; z-index:1; }
+
+    .nav { position:sticky; top:0; z-index:50; background:rgba(6,7,9,0.66); backdrop-filter:blur(16px); border-bottom:1px solid var(--line); }
+    .nav-inner { max-width:1000px; margin:0 auto; padding:15px 24px; display:flex; align-items:center; gap:28px; }
+    .wordmark { display:flex; align-items:center; gap:10px; font-family:var(--display); font-weight:700; font-size:15px; letter-spacing:0.24em; }
+    .mark { color:var(--cobalt); flex-shrink:0; filter:drop-shadow(0 0 10px rgba(91,140,255,0.5)); }
+    .nav-links { display:flex; gap:24px; margin-left:auto; }
+    .nav-links a { font-size:13.5px; font-weight:500; color:var(--gray); transition:color .18s; }
+    .nav-links a:hover { color:var(--white); }
+
+    .wrap { max-width:840px; margin:0 auto; padding:60px 24px 100px; }
+    .eyebrow { display:inline-flex; align-items:center; gap:9px; font-family:var(--mono); font-size:11px; letter-spacing:0.16em; text-transform:uppercase; color:var(--gray); border:1px solid var(--line-strong); background:rgba(255,255,255,0.02); border-radius:999px; padding:7px 15px; margin-bottom:24px; }
+    .eyebrow i { width:6px; height:6px; border-radius:50%; background:var(--cobalt); box-shadow:0 0 10px rgba(91,140,255,0.9); }
+    h1 { font-size:clamp(34px,5vw,52px); line-height:1.05; margin-bottom:16px; font-weight:700; }
+    .grad { background:linear-gradient(180deg,#FFFFFF 30%,#9DB9FF 100%); -webkit-background-clip:text; background-clip:text; color:transparent; }
+    .sub { color:var(--gray); font-size:16px; margin-bottom:36px; max-width:56ch; }
+
+    /* input card */
+    .card { background:linear-gradient(180deg,rgba(255,255,255,0.04),rgba(255,255,255,0.01)); border:1px solid var(--line-strong); border-radius:16px; padding:22px; }
+    .tabs { display:flex; gap:8px; margin-bottom:16px; }
+    .tab { font-family:var(--mono); font-size:12px; color:var(--gray); background:none; border:1px solid var(--line); border-radius:8px; padding:7px 14px; cursor:pointer; transition:.18s; }
+    .tab.active { color:var(--cobalt); border-color:rgba(91,140,255,0.5); background:rgba(91,140,255,0.07); }
+    .field { display:none; }
+    .field.active { display:block; }
+    .row { display:flex; gap:10px; flex-wrap:wrap; }
+    input.addr { flex:1; min-width:240px; background:var(--void); border:1px solid var(--line-strong); border-radius:10px; color:var(--white); font-family:var(--mono); font-size:14px; padding:13px 15px; }
+    textarea.src { width:100%; min-height:180px; background:var(--void); border:1px solid var(--line-strong); border-radius:10px; color:var(--white); font-family:var(--mono); font-size:13px; padding:13px 15px; resize:vertical; }
+    input.addr::placeholder, textarea.src::placeholder { color:var(--gray); opacity:.55; }
+    .btn { display:inline-flex; align-items:center; justify-content:center; gap:8px; padding:13px 26px; border-radius:10px; font-size:14px; font-weight:600; border:1px solid transparent; cursor:pointer; font-family:var(--body); transition:transform .15s, box-shadow .2s, opacity .2s; }
+    .btn-cobalt { background:linear-gradient(180deg,var(--cobalt),var(--cobalt-deep)); color:#fff; box-shadow:0 0 0 1px rgba(157,185,255,0.35) inset, 0 8px 26px rgba(61,107,243,0.35); }
+    .btn-cobalt:hover { transform:translateY(-1px); }
+    .btn-cobalt:disabled { opacity:.5; cursor:not-allowed; transform:none; }
+    .examples { margin-top:14px; font-size:12.5px; color:var(--gray); font-family:var(--mono); }
+    .examples button { background:none; border:none; color:var(--cobalt); cursor:pointer; font-family:var(--mono); font-size:12.5px; padding:0 2px; }
+    .examples button:hover { text-decoration:underline; }
+
+    /* result terminal */
+    .result { margin-top:26px; border:1px solid var(--line-strong); border-radius:14px; overflow:hidden; display:none; }
+    .result.show { display:block; }
+    .result-head { display:flex; align-items:center; gap:10px; padding:12px 16px; border-bottom:1px solid var(--line); background:var(--panel-2); }
+    .result-head .d { width:9px; height:9px; border-radius:50%; background:rgba(255,255,255,0.12); }
+    .result-title { font-family:var(--mono); font-size:12px; color:var(--gray); margin-left:4px; }
+    .result-body { padding:20px 20px 22px; font-family:var(--mono); font-size:13px; background:var(--panel); min-height:80px; }
+    .r-cmd { color:var(--white); margin-bottom:14px; }
+    .r-cmd .p { color:var(--cobalt); }
+    .r-head { color:var(--gray); opacity:.75; font-size:12px; margin:16px 0 6px; letter-spacing:.04em; }
+    .r-summary { color:rgba(244,245,247,0.9); line-height:1.6; }
+    .r-risk { padding:7px 0; }
+    .r-risk .t { font-weight:500; }
+    .sev-high .t { color:var(--risk); }
+    .sev-medium .t { color:var(--warn); }
+    .sev-low .t, .sev-info .t { color:var(--gray); }
+    .r-detail { color:var(--gray); padding-left:16px; font-size:12.5px; }
+    .r-incident { color:var(--gray); opacity:.7; padding-left:16px; font-size:12px; }
+    .r-gas { color:var(--pass); padding:4px 0; }
+    .r-foot { color:var(--gray); opacity:.6; font-size:11.5px; margin-top:18px; }
+    .r-clean { color:var(--pass); }
+    .spinner { display:inline-block; width:13px; height:13px; border:2px solid rgba(91,140,255,0.3); border-top-color:var(--cobalt); border-radius:50%; animation:spin .7s linear infinite; vertical-align:middle; margin-right:8px; }
+    @keyframes spin { to { transform:rotate(360deg); } }
+    .err { color:var(--risk); font-family:var(--mono); font-size:13px; }
+
+    .disclaimer { margin-top:26px; font-size:12.5px; color:var(--gray); text-align:center; font-family:var(--mono); opacity:.7; }
+
+    @media (max-width:600px){ .nav-links{ display:none; } }
+  </style>
+</head>
+
+<body>
+  <div class="atmo" aria-hidden="true"></div>
+
+  <header class="nav">
+    <div class="nav-inner">
+      <a class="wordmark" href="/" aria-label="Sigil home">
+        <svg class="mark" width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M17 5.5H9.5a3 3 0 0 0 0 6h5a3 3 0 0 1 0 6H7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          <circle cx="19" cy="18.5" r="1.4" fill="currentColor"/>
+        </svg>
+        <span>SIGIL</span>
+      </a>
+      <nav class="nav-links" aria-label="Primary">
+        <a href="/#features">Features</a>
+        <a href="/#faq">FAQ</a>
+        <a href="/try">Try</a>
+        <a href="https://github.com" target="_blank" rel="noreferrer">GitHub</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <p class="eyebrow"><i></i>Live tool</p>
+    <h1>Explain any <span class="grad">contract</span>.</h1>
+    <p class="sub">Paste a deployed address or drop in Solidity source. Sigil returns a plain-English summary, exploit pattern flags tied to real incidents, and gas notes.</p>
+
+    <div class="card">
+      <div class="tabs">
+        <button class="tab active" data-tab="addr" type="button">By address</button>
+        <button class="tab" data-tab="src" type="button">Paste source</button>
+      </div>
+
+      <div class="field active" id="field-addr">
+        <div class="row">
+          <input class="addr" id="addrInput" type="text" placeholder="0x contract address (Ethereum mainnet)" spellcheck="false" />
+          <button class="btn btn-cobalt" id="runAddr" type="button">Explain</button>
+        </div>
+        <p class="examples">try:
+          <button data-addr="0xdAC17F958D2ee523a2206206994597C13D831ec7">USDT</button> ·
+          <button data-addr="0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984">UNI</button> ·
+          <button data-addr="0x6B175474E89094C44Da98b954EedeAC495271d0F">DAI</button>
+        </p>
+      </div>
+
+      <div class="field" id="field-src">
+        <textarea class="src" id="srcInput" placeholder="// paste your Solidity here" spellcheck="false"></textarea>
+        <div class="row" style="margin-top:12px;">
+          <button class="btn btn-cobalt" id="runSrc" type="button">Explain</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="result" id="result">
+      <div class="result-head">
+        <span class="d"></span><span class="d"></span><span class="d"></span>
+        <span class="result-title">sigil terminal</span>
+      </div>
+      <div class="result-body" id="resultBody"></div>
+    </div>
+
+    <p class="disclaimer">Sigil flags signals, not verdicts. It is a copilot, not a substitute for a professional audit.</p>
+  </main>
+
+  <script>
+    var tabs = document.querySelectorAll('.tab');
+    tabs.forEach(function(t){
+      t.addEventListener('click', function(){
+        tabs.forEach(function(x){ x.classList.remove('active'); });
+        t.classList.add('active');
+        document.getElementById('field-addr').classList.toggle('active', t.dataset.tab==='addr');
+        document.getElementById('field-src').classList.toggle('active', t.dataset.tab==='src');
+      });
+    });
+
+    document.querySelectorAll('.examples button').forEach(function(b){
+      b.addEventListener('click', function(){
+        document.getElementById('addrInput').value = b.dataset.addr;
+      });
+    });
+
+    var result = document.getElementById('result');
+    var body = document.getElementById('resultBody');
+
+    function esc(s){ return String(s).replace(/[&<>]/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;'}[c]; }); }
+
+    function loading(label){
+      result.classList.add('show');
+      body.innerHTML = '<div class="r-cmd"><span class="p">$ </span>sigil explain ' + esc(label) + '</div><div class="r-summary"><span class="spinner"></span>reading, scanning and analyzing...</div>';
+      result.scrollIntoView({ behavior:'smooth', block:'nearest' });
+    }
+
+    function showError(msg){
+      body.innerHTML = '<div class="err">xx ' + esc(msg) + '</div>';
+    }
+
+    function render(data){
+      var h = '<div class="r-cmd"><span class="p">$ </span>sigil explain ' + esc(data.label) + '  <span style="color:var(--gray)">(' + data.lines + ' lines)</span></div>';
+      if (data.summary) {
+        h += '<div class="r-head">[ summary ]</div><div class="r-summary">' + esc(data.summary) + '</div>';
+      }
+      h += '<div class="r-head">[ risk flags ]</div>';
+      if (!data.risks || !data.risks.length) {
+        h += '<div class="r-clean">ok no known exploit patterns matched</div>';
+      } else {
+        data.risks.forEach(function(r){
+          var mark = (r.severity==='low'||r.severity==='info') ? '-' : '!';
+          h += '<div class="r-risk sev-' + esc(r.severity) + '"><span class="t">' + mark + ' [' + esc(r.severity) + '] ' + esc(r.title) + '</span>';
+          h += '<div class="r-detail">' + esc(r.detail) + '</div>';
+          if (r.incident) h += '<div class="r-incident">see: ' + esc(r.incident) + '</div>';
+          h += '</div>';
+        });
+      }
+      if (data.gas && data.gas.length) {
+        h += '<div class="r-head">[ gas notes ]</div>';
+        data.gas.forEach(function(g){ h += '<div class="r-gas">ok ' + esc(g) + '</div>'; });
+      }
+      h += '<div class="r-foot">sigil v0.1 · ' + (data.aiUsed ? 'heuristics + AI analysis' : 'heuristics only') + ' · not a substitute for an audit</div>';
+      body.innerHTML = h;
+    }
+
+    function run(payload, label){
+      loading(label);
+      fetch('/api/explain', {
+        method:'POST',
+        headers:{ 'Content-Type':'application/json' },
+        body: JSON.stringify(payload)
+      }).then(function(res){ return res.json().then(function(j){ return { ok:res.ok, j:j }; }); })
+        .then(function(r){ if (!r.ok) { showError(r.j.error || 'Something went wrong.'); } else { render(r.j); } })
+        .catch(function(){ showError('Network error. Try again.'); });
+    }
+
+    document.getElementById('runAddr').addEventListener('click', function(){
+      var a = document.getElementById('addrInput').value.trim();
+      if (!a) { return; }
+      run({ address:a }, a);
+    });
+    document.getElementById('addrInput').addEventListener('keydown', function(e){ if (e.key==='Enter') document.getElementById('runAddr').click(); });
+
+    document.getElementById('runSrc').addEventListener('click', function(){
+      var s = document.getElementById('srcInput').value.trim();
+      if (!s) { return; }
+      run({ source:s }, 'pasted source');
+    });
+  </script>
+</body>
+</html>
