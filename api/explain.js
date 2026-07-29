@@ -3,13 +3,17 @@
  *
  * The browser sends { address } or { source }.
  * This runs on Vercel's servers, so the API key stays secret.
- * It fetches source, scans for exploit patterns, then asks Claude to
+ * It fetches source, scans for exploit patterns, then asks an AI model to
  * confirm findings and write the summary + gas notes.
+ *
+ * AI provider: Google Gemini (free tier via Google AI Studio).
+ * Set GEMINI_API_KEY in Vercel. Without it, the offline pattern flags still work.
  */
 
 import { PATTERNS } from "../lib/patterns.js";
 
-const MODEL = "claude-sonnet-4-6";
+// Gemini free-tier model. Fast and free for this use.
+const GEMINI_MODEL = "gemini-2.0-flash";
 const MAX_SOURCE_CHARS = 60000;
 
 /* ---------- source fetch (Sourcify, then Etherscan) ---------- */
@@ -59,9 +63,9 @@ function scanSource(source) {
   return hits;
 }
 
-/* ---------- AI step ---------- */
+/* ---------- AI step (Google Gemini, free tier) ---------- */
 async function aiAnalyze(source, heuristics) {
-  const key = process.env.ANTHROPIC_API_KEY;
+  const key = process.env.GEMINI_API_KEY;
   if (!key) return null;
 
   const trimmed = source.length > MAX_SOURCE_CHARS
@@ -71,26 +75,35 @@ async function aiAnalyze(source, heuristics) {
     ? heuristics.map((h) => `- [${h.severity}] ${h.title}: ${h.detail}`).join("\n")
     : "(no heuristic hits)";
 
-  const system = `You are Sigil, an expert smart contract auditor. Respond ONLY with valid JSON, no markdown, no backticks, no preamble.
+  const instruction = `You are Sigil, an expert smart contract auditor. Respond ONLY with valid JSON, no markdown, no backticks, no preamble.
 Shape:
 {"summary":"2-3 plain-English sentences: what the contract does and who controls what","risks":[{"severity":"high|medium|low","title":"short","detail":"one actionable sentence","incident":"real exploit or null"}],"gas":["specific optimization with impact, max 3"]}
-Rules: confirm or reject the heuristic hits, drop false positives, reference real incidents only when the pattern truly matches, max 6 risks most severe first.`;
+Rules: confirm or reject the heuristic hits, drop false positives, reference real incidents only when the pattern truly matches, max 6 risks most severe first.
 
-  const res = await fetch("https://api.anthropic.com/v1/messages", {
+Heuristic scanner hits:
+${heurText}
+
+Contract source:
+${trimmed}`;
+
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${key}`;
+  const res = await fetch(url, {
     method: "POST",
-    headers: { "Content-Type": "application/json", "x-api-key": key, "anthropic-version": "2023-06-01" },
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      model: MODEL,
-      max_tokens: 1500,
-      system,
-      messages: [{ role: "user", content: `Heuristic hits:\n${heurText}\n\nSource:\n${trimmed}` }],
+      contents: [{ parts: [{ text: instruction }] }],
+      generationConfig: { temperature: 0.2, maxOutputTokens: 1500 },
     }),
   });
+
   if (!res.ok) throw new Error(`AI service error ${res.status}`);
   const data = await res.json();
-  const text = (data.content || []).filter((b) => b.type === "text").map((b) => b.text).join("\n");
-  try { return JSON.parse(text.replace(/```json|```/g, "").trim()); }
-  catch { return null; }
+  const text = data?.candidates?.[0]?.content?.parts?.[0]?.text || "";
+  try {
+    return JSON.parse(text.replace(/```json|```/g, "").trim());
+  } catch {
+    return null;
+  }
 }
 
 /* ---------- handler ---------- */
