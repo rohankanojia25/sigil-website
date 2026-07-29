@@ -215,6 +215,9 @@
         h += '<div class="r-head">[ gas notes ]</div>';
         data.gas.forEach(function(g){ h += '<div class="r-gas">ok ' + esc(g) + '</div>'; });
       }
+      if (data.aiError) {
+        h += '<div class="r-head">[ ai note ]</div><div class="r-detail" style="color:var(--warn)">' + esc(data.aiError) + '</div>';
+      }
       h += '<div class="r-foot">sigil v0.1 · ' + (data.aiUsed ? 'heuristics + AI analysis' : 'heuristics only') + ' · not a substitute for an audit</div>';
       body.innerHTML = h;
     }
