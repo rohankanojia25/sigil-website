@@ -12,11 +12,10 @@
 
 import { PATTERNS } from "../lib/patterns.js";
 
-// Gemini free-tier model. If one name errors, swap to the other:
-//   "gemini-3-flash-preview"  (newest, shown in AI Studio)
-//   "gemini-2.5-flash"        (stable fallback)
-//   "gemini-2.5-flash-lite"   (highest free rate limit)
-const GEMINI_MODEL = "gemini-2.5-flash";
+// Gemini free-tier model. This account requires the newer model.
+//   "gemini-3-flash-preview"  (current, works for new accounts)
+//   "gemini-2.5-flash-lite"   (fallback, highest free rate limit)
+const GEMINI_MODEL = "gemini-3-flash-preview";
 const MAX_SOURCE_CHARS = 60000;
 
 /* ---------- source fetch (Sourcify, then Etherscan) ---------- */
