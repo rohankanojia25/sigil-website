@@ -293,6 +293,38 @@
     .open-item h3 { font-size: 17px; margin-bottom: 6px; color: var(--cobalt); }
     .open-item p { color: var(--gray); font-size: 14px; }
 
+    /* roadmap */
+    .roadmap { max-width: 1120px; margin: 0 auto; padding: 120px 24px 20px; }
+    .roadmap h2 { margin-bottom: 44px; }
+    .road-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+    .road-col {
+      background: var(--panel); border: 1px solid var(--line); border-radius: 16px;
+      padding: 26px 26px 30px; transition: border-color .2s;
+    }
+    .road-col:hover { border-color: rgba(91,140,255,0.4); }
+    .road-tag {
+      display: inline-block; font-family: var(--mono); font-size: 10.5px;
+      letter-spacing: 0.16em; text-transform: uppercase; color: var(--gray);
+      border: 1px solid var(--line-strong); border-radius: 999px;
+      padding: 5px 13px; margin-bottom: 20px;
+    }
+    .road-now {
+      color: var(--cobalt); border-color: rgba(91,140,255,0.4);
+      background: rgba(91,140,255,0.07);
+    }
+    .road-col ul { list-style: none; display: grid; gap: 13px; }
+    .road-col li {
+      position: relative; padding-left: 22px; font-size: 14.5px;
+      color: rgba(244,245,247,0.88);
+    }
+    .road-col li::before {
+      content: ""; position: absolute; left: 0; top: 8px;
+      width: 8px; height: 8px; border-radius: 50%;
+      border: 1.5px solid var(--gray);
+    }
+    .road-col li.done { color: var(--gray); text-decoration: line-through; text-decoration-color: rgba(143,150,163,0.5); }
+    .road-col li.done::before { background: var(--pass); border-color: var(--pass); }
+
     /* faq */
     .faq { max-width: 760px; margin: 0 auto; padding: 120px 24px; }
     .faq h2 { margin-bottom: 36px; }
@@ -343,6 +375,7 @@
 
     @media (max-width: 900px) {
       .feat-grid { grid-template-columns: 1fr 1fr; }
+      .road-grid { grid-template-columns: 1fr; }
       .how-grid { grid-template-columns: 1fr; gap: 30px; }
       .open-inner { grid-template-columns: 1fr; }
       .open-item { border-right: none; border-bottom: 1px solid var(--line); }
@@ -375,6 +408,7 @@
         <a href="#features">Features</a>
         <a href="#how">How it works</a>
         <a href="#agents">For agents</a>
+        <a href="#roadmap">Roadmap</a>
         <a href="#faq">FAQ</a>
       </nav>
       <div class="nav-cta">
@@ -520,6 +554,38 @@
       </div>
     </section>
 
+    <!-- ROADMAP -->
+    <section class="roadmap" id="roadmap">
+      <p class="section-eyebrow">Roadmap</p>
+      <h2>Where Sigil is going.</h2>
+      <div class="road-grid">
+        <div class="road-col">
+          <span class="road-tag road-now">Now</span>
+          <ul>
+            <li class="done">Landing page and waitlist</li>
+            <li>sigil explain CLI: address in, truth out</li>
+            <li>Exploit pattern database v1</li>
+          </ul>
+        </div>
+        <div class="road-col">
+          <span class="road-tag">Next</span>
+          <ul>
+            <li>Foundry plugin</li>
+            <li>Hardhat plugin</li>
+            <li>Machine-payable API endpoints via x402</li>
+          </ul>
+        </div>
+        <div class="road-col">
+          <span class="road-tag">Later</span>
+          <ul>
+            <li>Cursor extension</li>
+            <li>Rust and Move support</li>
+            <li>Fully local mode</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
     <!-- FAQ -->
     <section class="faq" id="faq">
       <p class="section-eyebrow">FAQ</p>
@@ -648,5 +714,9 @@
       });
     })();
   </script>
+
+  <!-- Vercel Web Analytics + Speed Insights (activate them in the Vercel dashboard) -->
+  <script defer src="/_vercel/insights/script.js"></script>
+  <script defer src="/_vercel/speed-insights/script.js"></script>
 </body>
 </html>
