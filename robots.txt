@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://sigil.dev/sitemap.xml
+Sitemap: https://sigil-website.vercel.app/sitemap.xml
