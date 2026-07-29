@@ -5,7 +5,7 @@
 Sigil reads Solidity, Rust and Move contracts the way an auditor does. It writes your tests, flags known exploit patterns, and simulates every call locally before you deploy.
 
 🔗 **Website:** [sigil-website.vercel.app](https://sigil-website.vercel.app)
-🐦 **X:** coming soon
+🐦 **X:** https://x.com/use_sigil
 📬 **Early access:** [join the waitlist](https://sigil-website.vercel.app/#access)
 
 ---
