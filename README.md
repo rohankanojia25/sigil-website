@@ -74,7 +74,7 @@ ok Packing the debt mapping saves ~4,120 gas per repay()
   2. SCAN     the source is checked against every pattern in the
             |    exploit database (lib/patterns.js). Matches become flags.
             v
-  3. AI       source + flags go to Claude, which confirms real risks,
+  3. AI       source + flags go to an AI model, which confirms real risks,
             |    drops false alarms, and writes the summary and gas notes.
             v
   4. SHOW     result is printed in the terminal or drawn on the web page
@@ -88,10 +88,10 @@ pattern flags, so it is useful for free.
 
 ## Repository layout
 
-This project is two things that share one exploit database:
+Two parts that share one exploit database:
 
 ```
-sigil-website/            the marketing site + live web tool (deployed on Vercel)
+sigil-website/            the site + live web tool (deployed on Vercel)
 ├── index.html              home page
 ├── try/index.html          the live "paste an address" tool
 ├── blog/index.html         blog (coming soon)
@@ -103,18 +103,17 @@ sigil-website/            the marketing site + live web tool (deployed on Vercel
 
 sigil-cli/                the command-line tool
 ├── bin/sigil.js            the `sigil` command
-├── lib/
-│   ├── fetch.js            gets verified source
-│   ├── scan.js             runs the pattern database
-│   ├── patterns.js         THE EXPLOIT DATABASE (shared)
-│   ├── ai.js               the Claude call
-│   └── render.js           terminal output
+├── lib/patterns.js         THE EXPLOIT DATABASE (shared)
+├── lib/fetch.js            gets verified source
+├── lib/scan.js             runs the pattern database
+├── lib/ai.js               the AI call
+├── lib/render.js           terminal output
 └── samples/                a flawed contract for testing
 ```
 
 > Every file named `index.html` lives in its own folder. That is how the web
-> serves clean URLs: `/blog` shows `blog/index.html` automatically. There is no
-> naming clash because the folder is the name.
+> serves clean URLs: `/blog` shows `blog/index.html` automatically. The folder is
+> the name, so there is no clash.
 
 ---
 
@@ -122,72 +121,84 @@ sigil-cli/                the command-line tool
 
 The file **`lib/patterns.js`** is the heart of Sigil. It is a list of known
 vulnerability shapes. Each entry says: here is a dangerous code pattern, here is
-why it is dangerous, and here is the real hack where it lost money.
+why it is dangerous, and here is the real hack where it lost money. Growing this
+file is how Sigil gets smarter.
 
-Growing this file is how Sigil gets smarter, and it is the part hardest for
-others to copy, because it takes security knowledge, not just code.
+Each pattern looks like this:
+
+```javascript
+{
+  id: "reentrancy-call-value",
+  severity: "high",
+  regex: /\.call\{value:/,                 // the code shape to find
+  title: "Low-level call with value transfer",
+  detail: "External .call{value:} found. If state updates after the call, this is the classic reentrancy shape.",
+  incident: "The DAO (2016), Cream Finance (2021)",
+}
+```
 
 **v1 ships with 12 patterns:** reentrancy, missing reentrancy guard, `tx.origin`
 auth, `delegatecall`, `selfdestruct`, pre-0.8 overflow risk, timestamp logic,
 timelock-less privileged setters, replayable signatures, unchecked low-level
-calls, and inline assembly. Each links to a real incident (The DAO, Parity,
-Cream Finance, and others).
+calls, and inline assembly. Each links to a real incident.
 
-A full guide to how the database works and how to add patterns is in
-[`EXPLOIT-DATABASE-GUIDE.md`](./EXPLOIT-DATABASE-GUIDE.md).
+**To add a pattern:** copy an entry, change the `regex` to the dangerous code
+shape, write the `title` and `detail`, and cite the `incident`. Test it, then
+commit. Good sources for new patterns: rekt.news, Code4rena and Sherlock reports,
+the SWC Registry, and Immunefi.
 
 ---
 
-## Install and use the CLI
+## Use the CLI
 
 Requires Node.js 18 or newer.
 
 ```bash
-git clone https://github.com/<you>/sigil-cli
+git clone https://github.com/rohankanojia25/sigil-cli
 cd sigil-cli
-npm link          # makes the `sigil` command available everywhere
-```
+npm link                                   # makes `sigil` available everywhere
 
-```bash
-# analyze a deployed contract (Ethereum mainnet)
-sigil explain 0xdAC17F958D2ee523a2206206994597C13D831ec7
-
-# analyze a local file
-sigil explain --file contracts/MyToken.sol
-
-# heuristics only, no AI, fully offline
-sigil explain --file contracts/MyToken.sol --no-ai
-
-# a different chain
-sigil explain 0x... --chain 8453
+sigil explain 0xdAC17F958D2ee523a2206206994597C13D831ec7   # a deployed contract
+sigil explain --file contracts/MyToken.sol                 # a local file
+sigil explain --file contracts/MyToken.sol --no-ai         # offline, flags only
+sigil explain 0x... --chain 8453                           # a different chain
 ```
 
 ---
 
-## Keys and configuration
+## Setup: keys (one time, by the maintainer)
 
-Sigil works with no keys (offline pattern flags only). To turn on the AI summary,
-risk confirmation and gas notes, add an Anthropic key. To read contracts that are
-not on Sourcify, add an Etherscan key.
-
-```bash
-export ANTHROPIC_API_KEY=sk-ant-...     # enables the AI analysis
-export ETHERSCAN_API_KEY=...            # optional, free at etherscan.io/myapikey
-```
+End users set up nothing. They just visit the site and use it. The keys below are
+added once by the project owner so the hosted tool works for everyone.
 
 Source fetching uses [Sourcify](https://sourcify.dev) first (free, no key) and
 falls back to Etherscan.
+
+| Variable | What it does | Where to get it | Cost |
+|---|---|---|---|
+| `GEMINI_API_KEY` | Turns on the AI summary, risk confirmation and gas notes | aistudio.google.com | Free tier |
+| `ETHERSCAN_API_KEY` | Reads contracts not on Sourcify (like USDT) | etherscan.io/myapikey | Free |
+
+**For the website (Vercel):** add these under Settings, Environment Variables
+(Production and Preview), then redeploy from the Deployments tab so they load.
+
+**For the CLI (your machine):**
+
+```bash
+export GEMINI_API_KEY=...
+export ETHERSCAN_API_KEY=...
+```
+
+Without a key, everything still runs and shows the offline pattern flags.
 
 ---
 
 ## The live web tool
 
-The `/try` page lets anyone use Sigil in a browser, no install. It calls a Vercel
-serverless function (`api/explain.js`) that runs the same fetch, scan and AI
-steps. The API key lives as an environment variable on Vercel, so it stays secret
-and never reaches the browser.
-
-Deploy steps and key setup are in [DEPLOY.md](./DEPLOY.md).
+The `/try` page lets anyone use Sigil in a browser, no install and no account. It
+calls a serverless function (`api/explain.js`) that runs the same fetch, scan and
+AI steps. The key lives on the server, so it stays secret and never reaches the
+browser. Users pay nothing and set up nothing.
 
 ---
 
@@ -241,7 +252,7 @@ HTTP/1.1 200 OK   audit.json
 
 Sigil is early and input is welcome. The most valuable contribution is a new
 exploit pattern: read a hack, extract its code shape, and add it to
-`lib/patterns.js` following the guide. Open an issue or a pull request.
+`lib/patterns.js`. Open an issue or a pull request.
 
 ---
 
