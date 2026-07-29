@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>Sigil Litepaper: An AI Copilot for Smart Contract Security</title>
+  <meta name="description" content="The Sigil litepaper. Why smart contract security needs a specialized AI copilot, how Sigil works, its exploit pattern database, the machine economy via x402, and the roadmap." />
+  <meta name="robots" content="index, follow" />
+  <link rel="canonical" href="https://sigil-website.vercel.app/litepaper/" />
+  <meta property="og:title" content="Sigil Litepaper" />
+  <meta property="og:description" content="An AI copilot for smart contract security. Vision, product, database and roadmap." />
+  <meta property="og:type" content="article" />
+  <meta property="og:url" content="https://sigil-website.vercel.app/litepaper/" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+  <style>
+    :root {
+      --void:#060709; --panel:#0C0E13; --panel-2:#11141B;
+      --line:rgba(255,255,255,0.07); --line-2:rgba(255,255,255,0.13);
+      --white:#F2F4F8; --gray:#8B93A4; --gray-2:#5C6373;
+      --cobalt:#5B8CFF; --cobalt-2:#3D6BF3; --mint:#51D98B;
+      --display:'Space Grotesk',system-ui,sans-serif;
+      --body:'Inter',system-ui,sans-serif;
+      --mono:'JetBrains Mono',ui-monospace,monospace;
+      --w:1280px; --read:760px;
+    }
+    * { box-sizing:border-box; margin:0; padding:0; }
+    html { scroll-behavior:smooth; }
+    body { background:var(--void); color:var(--white); font-family:var(--body); line-height:1.7; -webkit-font-smoothing:antialiased; overflow-x:hidden; }
+    a { color:var(--cobalt); text-decoration:none; }
+    a:hover { text-decoration:underline; }
+    a:focus-visible { outline:2px solid var(--cobalt); outline-offset:3px; border-radius:6px; }
+    h1,h2,h3 { font-family:var(--display); font-weight:600; letter-spacing:-0.03em; color:var(--white); }
+
+    .atmo { position:fixed; inset:0; pointer-events:none; z-index:0;
+      background:radial-gradient(1000px 520px at 72% -12%, rgba(91,140,255,0.10), transparent 62%); }
+    header, main, footer { position:relative; z-index:1; }
+
+    /* nav (matches site) */
+    .nav { position:sticky; top:0; z-index:60; background:rgba(6,7,9,0.62); backdrop-filter:blur(18px) saturate(1.4); border-bottom:1px solid var(--line); }
+    .nav-inner { max-width:var(--w); margin:0 auto; padding:14px 36px; display:flex; align-items:center; gap:32px; }
+    .wordmark { display:flex; align-items:center; gap:10px; font-family:var(--display); font-weight:700; font-size:15px; letter-spacing:0.26em; color:var(--white); }
+    .wordmark:hover { text-decoration:none; }
+    .mark { color:var(--cobalt); flex-shrink:0; filter:drop-shadow(0 0 10px rgba(91,140,255,0.5)); }
+    .nav-links { display:flex; gap:26px; margin-left:auto; }
+    .nav-links a { font-size:13.5px; font-weight:500; color:var(--gray); }
+    .nav-links a:hover { color:var(--white); text-decoration:none; }
+    .btn { display:inline-flex; align-items:center; justify-content:center; padding:8px 16px; border-radius:9px; font-size:13px; font-weight:600; }
+    .btn-cobalt { background:linear-gradient(180deg,var(--cobalt),var(--cobalt-2)); color:#fff; box-shadow:0 0 0 1px rgba(157,185,255,0.35) inset; }
+    .btn-cobalt:hover { text-decoration:none; }
+
+    /* document */
+    .doc { max-width:var(--read); margin:0 auto; padding:80px 24px 40px; }
+    .doc-head { margin-bottom:56px; padding-bottom:40px; border-bottom:1px solid var(--line); }
+    .kicker { font-family:var(--mono); font-size:11px; letter-spacing:0.18em; text-transform:uppercase; color:var(--cobalt); margin-bottom:20px; }
+    .doc-head h1 { font-size:clamp(36px,5vw,52px); line-height:1.06; margin-bottom:18px; }
+    .doc-head .lede { color:var(--gray); font-size:18px; }
+    .meta { margin-top:26px; font-family:var(--mono); font-size:12px; color:var(--gray-2); display:flex; gap:18px; flex-wrap:wrap; }
+
+    .toc { background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:24px 28px; margin-bottom:56px; }
+    .toc h3 { font-size:13px; font-family:var(--mono); letter-spacing:0.1em; text-transform:uppercase; color:var(--gray); margin-bottom:14px; font-weight:500; }
+    .toc ol { list-style:none; counter-reset:toc; display:grid; gap:9px; }
+    .toc li { counter-increment:toc; font-size:14.5px; }
+    .toc li::before { content:counter(toc,decimal-leading-zero); color:var(--cobalt); font-family:var(--mono); font-size:12px; margin-right:12px; }
+    .toc a { color:var(--white); }
+    .toc a:hover { color:var(--cobalt); }
+
+    section.blk { margin-bottom:52px; }
+    .blk h2 { font-size:26px; margin-bottom:18px; scroll-margin-top:90px; }
+    .blk h2 .n { font-family:var(--mono); font-size:15px; color:var(--cobalt); margin-right:14px; }
+    .blk h3 { font-size:17px; margin:26px 0 10px; }
+    .blk p { color:#C7CDD8; font-size:16px; margin-bottom:16px; }
+    .blk ul { margin:0 0 16px 0; padding-left:22px; }
+    .blk li { color:#C7CDD8; font-size:16px; margin-bottom:8px; }
+    .blk strong { color:var(--white); }
+    .pull { border-left:2px solid var(--cobalt); padding:4px 0 4px 22px; margin:24px 0; font-size:18px; color:var(--white); font-family:var(--display); font-weight:500; letter-spacing:-0.02em; }
+    .code { background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:18px 20px; font-family:var(--mono); font-size:13px; color:var(--gray); overflow-x:auto; margin:18px 0; white-space:pre; line-height:1.7; }
+    .code .c { color:var(--cobalt); } .code .r { color:#FF7A7A; } .code .g { color:var(--mint); } .code .m { color:var(--gray-2); }
+    .tag { font-family:var(--mono); font-size:11px; color:var(--cobalt); background:rgba(91,140,255,0.08); border:1px solid rgba(91,140,255,0.28); border-radius:6px; padding:2px 8px; }
+
+    .end { border-top:1px solid var(--line); margin-top:20px; padding-top:40px; text-align:center; }
+    .end p { color:var(--gray); margin-bottom:22px; }
+    .btn-lg { padding:13px 28px; border-radius:11px; font-size:14px; }
+
+    .footer { border-top:1px solid var(--line); padding:40px 0; margin-top:60px; }
+    .footer-inner { max-width:var(--w); margin:0 auto; padding:0 36px; display:flex; gap:22px; flex-wrap:wrap; align-items:center; font-family:var(--mono); font-size:11px; color:var(--gray-2); }
+    .footer-inner a { color:var(--gray); }
+    .footer-links { margin-left:auto; display:flex; gap:20px; }
+
+    @media (prefers-reduced-motion: reduce){ html{ scroll-behavior:auto; } }
+    @media (max-width:860px){ .nav-links{ display:none; } .nav-inner{ padding:14px 22px; } .doc{ padding:56px 22px 40px; } }
+  </style>
+</head>
+
+<body>
+  <div class="atmo" aria-hidden="true"></div>
+
+  <header class="nav">
+    <div class="nav-inner">
+      <a class="wordmark" href="/" aria-label="Sigil home">
+        <svg class="mark" width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M17 5.5H9.5a3 3 0 0 0 0 6h5a3 3 0 0 1 0 6H7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="19" cy="18.5" r="1.4" fill="currentColor"/></svg>
+        <span>SIGIL</span>
+      </a>
+      <nav class="nav-links" aria-label="Primary">
+        <a href="/#product">Product</a>
+        <a href="/#how">How it works</a>
+        <a href="/#roadmap">Roadmap</a>
+        <a href="/litepaper/">Litepaper</a>
+        <a href="/docs/">Docs</a>
+      </nav>
+      <a class="btn btn-cobalt" href="/try">Try it live</a>
+    </div>
+  </header>
+
+  <main class="doc">
+    <div class="doc-head">
+      <p class="kicker">Litepaper · v1 · 2026</p>
+      <h1>An AI copilot for smart contract security.</h1>
+      <p class="lede">Why the next generation of on-chain code needs a reader that thinks like an auditor, and how Sigil is building it in the open.</p>
+      <div class="meta">
+        <span>Open source</span><span>No token</span><span>Solidity · Rust · Move</span>
+      </div>
+    </div>
+
+    <nav class="toc" aria-label="Contents">
+      <h3>Contents</h3>
+      <ol>
+        <li><a href="#problem">The problem</a></li>
+        <li><a href="#why">Why general copilots fall short</a></li>
+        <li><a href="#what">What Sigil is</a></li>
+        <li><a href="#how">How it works</a></li>
+        <li><a href="#database">The exploit pattern database</a></li>
+        <li><a href="#agents">The machine economy</a></li>
+        <li><a href="#principles">Principles</a></li>
+        <li><a href="#roadmap">Roadmap</a></li>
+        <li><a href="#close">The thesis</a></li>
+      </ol>
+    </nav>
+
+    <section class="blk" id="problem">
+      <h2><span class="n">01</span>The problem</h2>
+      <p>Smart contracts hold value directly. A bug in ordinary software causes a crash or a bad user experience. A bug in a smart contract causes an irreversible loss of money, often within minutes of deployment, often for people who never read a line of the code.</p>
+      <p>Every year, billions of dollars are drained from contracts through mistakes that were, in hindsight, well understood: a state update placed after an external call, an owner key with no timelock, a signature with no nonce. The knowledge to prevent these exists. It is scattered across audit reports, exploit post-mortems, and the memories of a small number of security researchers.</p>
+      <div class="pull">The information needed to prevent most hacks already exists. It is just not where developers write code.</div>
+      <p>Meanwhile, AI has made writing contracts faster than ever. More code is being shipped by more people, many of them new to the space, using general-purpose copilots that were never built for adversarial, value-bearing code. The result is a widening gap between how fast contracts are written and how carefully they are checked.</p>
+    </section>
+
+    <section class="blk" id="why">
+      <h2><span class="n">02</span>Why general copilots fall short</h2>
+      <p>General AI copilots are trained to produce code that compiles and runs. For most software, that is enough. For smart contracts, compiling is the easy part. The hard part is surviving contact with an adversary who is financially motivated to break you.</p>
+      <p>A general copilot will happily write a withdraw function with the external call before the state update. It compiles. It works in testing. It is also the exact shape that drained The DAO in 2016. The copilot does not know this, because it reasons about syntax, not about how contracts get exploited.</p>
+      <p>What is missing is not more general intelligence. It is <strong>specialized memory</strong>: a system that has seen every published way a contract has lost money, and checks new code against that memory before it ships.</p>
+    </section>
+
+    <section class="blk" id="what">
+      <h2><span class="n">03</span>What Sigil is</h2>
+      <p>Sigil is an AI copilot built only for smart contracts. Point it at a contract, from a file in your editor or a deployed address on-chain, and it returns three things:</p>
+      <ul>
+        <li>A <strong>plain-English summary</strong> of what the contract does and who controls what.</li>
+        <li><strong>Exploit pattern flags</strong>, each matched to a real incident where that shape lost money.</li>
+        <li><strong>Gas and quality notes</strong> a developer can act on directly.</li>
+      </ul>
+      <p>It works from the command line, in the browser with no install, and as machine-payable endpoints other software can call. It supports Solidity today, with Rust and Move on the roadmap, and integrates with the tools developers already use: Foundry, Hardhat, Remix, Cursor and MCP.</p>
+      <div class="pull">Read the contract before the contract reads you.</div>
+    </section>
+
+    <section class="blk" id="how">
+      <h2><span class="n">04</span>How it works</h2>
+      <p>A scan moves through four stages. Three are deterministic and free; only one uses an AI model.</p>
+      <div class="code"><span class="m">1. FETCH</span>   verified source is retrieved (Sourcify, then Etherscan)
+<span class="m">2. SCAN</span>    source is checked against the exploit pattern database
+<span class="m">3. AI</span>      a model confirms real risks, drops false alarms,
+          and writes the summary and gas notes
+<span class="m">4. SHOW</span>    results render in the terminal or the browser</div>
+      <p>The separation matters. The pattern scan is transparent and reproducible: anyone can read the database and see why a flag fired. The AI step adds judgment on top, confirming which flags are real in context and explaining them in plain language. The heuristics find candidates; the AI is the reviewer. Neither replaces a human audit, and Sigil never claims to.</p>
+    </section>
+
+    <section class="blk" id="database">
+      <h2><span class="n">05</span>The exploit pattern database</h2>
+      <p>The core of Sigil is a growing database of vulnerability patterns. Each entry describes a dangerous code shape, why it is dangerous, and the real incident where it lost money.</p>
+      <div class="code">{
+  id: <span class="c">"reentrancy-call-value"</span>,
+  severity: <span class="r">"high"</span>,
+  title: <span class="c">"Value transfer before state update"</span>,
+  incident: <span class="c">"The DAO (2016), Cream Finance (2021)"</span>,
+}</div>
+      <p>Version one ships with twelve patterns covering the most costly classes of bug: reentrancy, missing guards, <span class="tag">tx.origin</span> auth, <span class="tag">delegatecall</span>, <span class="tag">selfdestruct</span>, pre-0.8 overflow, unsafe timestamp logic, timelock-less privileged setters, replayable signatures, unchecked calls, and inline assembly.</p>
+      <p>This database is the part of Sigil that compounds. It is also the part hardest to copy, because it is built from security knowledge, not just code. Every published hack is a new entry. Over time, Sigil aims to hold more of this memory in one place than any single developer could carry, and to make it available at the moment of writing rather than the moment of the post-mortem.</p>
+    </section>
+
+    <section class="blk" id="agents">
+      <h2><span class="n">06</span>The machine economy</h2>
+      <p>Increasingly, code is not only written by people. AI agents deploy contracts, manage treasuries, and call each other's services autonomously. These agents need the same safety check human developers do, in a form they can pay for and consume without an account.</p>
+      <p>Every Sigil capability is designed as a machine-payable endpoint over <strong>x402</strong>, the emerging standard for per-call payments between software. An audit pipeline, a deployment bot, or another copilot can request an analysis and settle payment in the same request, in stablecoins, with no API keys or sign-up.</p>
+      <div class="code"><span class="m">GET</span> /api/audit/0x7a25...d4E9
+<span class="r">HTTP/1.1 402 Payment Required</span>
+x402-price: <span class="c">0.002 USDC</span>
+
+[payment settled]
+<span class="g">HTTP/1.1 200 OK</span>   audit.json</div>
+      <p>This is how Sigil earns without a token: humans use it free and open, machines pay per call for what they consume. Revenue comes from real usage, not speculation.</p>
+    </section>
+
+    <section class="blk" id="principles">
+      <h2><span class="n">07</span>Principles</h2>
+      <p>Sigil is built on four commitments that shape every decision:</p>
+      <ul>
+        <li><strong>Open core.</strong> The fundamentals, including the pattern database, are open source. Security tooling that asks you to trust a black box is a contradiction.</li>
+        <li><strong>Grant-backed, no token.</strong> Sigil is funded to be a public good. There is no token, no speculation, and no gate on the core. Value flows from usage.</li>
+        <li><strong>Local first.</strong> Simulation runs on your machine and is read only. Nothing about your unpublished code needs to leave your computer.</li>
+        <li><strong>Honest about limits.</strong> Sigil flags signals, not verdicts. It is a copilot, not a substitute for a professional audit, and it says so every time.</li>
+      </ul>
+    </section>
+
+    <section class="blk" id="roadmap">
+      <h2><span class="n">08</span>Roadmap</h2>
+      <h3>Now</h3>
+      <ul>
+        <li>Live web tool: explain any verified contract in the browser</li>
+        <li>Command-line tool for local files and addresses</li>
+        <li>Exploit pattern database, version one</li>
+      </ul>
+      <h3>Next</h3>
+      <ul>
+        <li>Foundry and Hardhat plugins, so checks run inside the developer's existing workflow</li>
+        <li>Machine-payable endpoints over x402</li>
+        <li>A deeper pattern database drawn from recent audit findings</li>
+      </ul>
+      <h3>Later</h3>
+      <ul>
+        <li>Cursor extension</li>
+        <li>Rust and Move support</li>
+        <li>Fully local inference mode for teams that cannot send code anywhere</li>
+      </ul>
+    </section>
+
+    <section class="blk" id="close">
+      <h2><span class="n">09</span>The thesis</h2>
+      <p>On-chain code is only going to hold more value, and more of it will be written with AI assistance by people who are not security experts. The tools that check that code have to keep pace, and general copilots will not, because safety here is a specialized discipline, not a general one.</p>
+      <p>Sigil's bet is simple: gather the world's exploit knowledge into one open, growing database, put an AI reviewer on top of it, and deliver it at the exact moment code is written. Make it free for people, payable for machines, and honest about being one layer of defense rather than the whole wall.</p>
+      <div class="pull">Every drained protocol compiled fine. Sigil exists for everything that happens after that.</div>
+    </section>
+
+    <div class="end">
+      <p>Sigil is live and open. Try it on any verified contract, right now.</p>
+      <a class="btn btn-cobalt btn-lg" href="/try">Try it live</a>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+      <span>SIGIL</span>
+      <span>Litepaper v1 · 2026</span>
+      <div class="footer-links">
+        <a href="/">Home</a>
+        <a href="/try">Try</a>
+        <a href="https://github.com" target="_blank" rel="noreferrer">GitHub</a>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>
