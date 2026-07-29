@@ -94,7 +94,11 @@ ${trimmed}`;
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       contents: [{ parts: [{ text: instruction }] }],
-      generationConfig: { temperature: 0.2, maxOutputTokens: 1500 },
+      generationConfig: {
+        temperature: 0.2,
+        maxOutputTokens: 1500,
+        responseMimeType: "application/json",
+      },
     }),
   });
 
@@ -104,10 +108,19 @@ ${trimmed}`;
   }
   const data = await res.json();
   const text = data?.candidates?.[0]?.content?.parts?.[0]?.text || "";
+
+  // Gemini 3 may wrap JSON in ```json fences or add stray text.
+  // Strip fences, then extract the outermost { ... } block before parsing.
+  let clean = text.replace(/```json/gi, "").replace(/```/g, "").trim();
+  const first = clean.indexOf("{");
+  const last = clean.lastIndexOf("}");
+  if (first !== -1 && last !== -1 && last > first) {
+    clean = clean.slice(first, last + 1);
+  }
   try {
-    return JSON.parse(text.replace(/```json|```/g, "").trim());
-  } catch {
-    return null;
+    return JSON.parse(clean);
+  } catch (e) {
+    throw new Error("AI replied but not in the expected format. Raw start: " + text.slice(0, 120));
   }
 }
 
