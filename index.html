@@ -183,15 +183,6 @@
     .step h3 { font-size:18px; margin:14px 0 8px; }
     .step p { color:var(--gray); font-size:14px; }
 
-    /* try banner */
-    .tryband { margin-top:120px; }
-    .tryband-card { border-radius:20px; border:1px solid var(--line-2); position:relative; overflow:hidden; padding:56px 48px; background:radial-gradient(600px 300px at 20% -20%, rgba(61,107,243,0.22), transparent 65%), var(--panel); display:grid; grid-template-columns:1fr auto; gap:40px; align-items:center; }
-    .tryband h2 { font-size:clamp(26px,3vw,40px); margin-bottom:10px; }
-    .tryband p { color:var(--gray); font-size:15px; }
-    .fake-input { display:flex; gap:10px; align-items:center; background:var(--void); border:1px solid var(--line-2); border-radius:12px; padding:8px 8px 8px 18px; min-width:380px; cursor:pointer; transition:border-color .2s; }
-    .fake-input:hover { border-color:rgba(91,140,255,0.5); }
-    .fake-input span { font-family:var(--mono); font-size:13px; color:var(--gray-2); flex:1; }
-
     /* agents */
     .agents-grid { display:grid; grid-template-columns:1fr 1fr; gap:60px; align-items:center; }
     .agents-grid p { color:var(--gray); font-size:15.5px; }
@@ -272,8 +263,6 @@
       .bento { grid-template-columns:1fr 1fr; }
       .cell-big { grid-column:span 2; }
       .agents-grid { grid-template-columns:1fr; gap:36px; }
-      .tryband-card { grid-template-columns:1fr; }
-      .fake-input { min-width:0; }
       .problem-grid { grid-template-columns:1fr; gap:28px; }
       .problem-grid p { border-left:none; padding-left:0; }
     }
@@ -293,7 +282,7 @@
       .bento { grid-template-columns:1fr; }
       .cell-big { grid-column:span 1; }
       .term-body { font-size:11.5px; }
-      .tryband-card, .access-card { padding:44px 26px; }
+      .access-card { padding:44px 26px; }
     }
   </style>
 </head>
@@ -318,7 +307,7 @@
         <a href="/docs/">Docs</a>
       </nav>
       <div class="nav-cta">
-        <a class="btn btn-ghost btn-sm" href="https://github.com/rohankanojia25/sigil-website" target="_blank" rel="noreferrer">GitHub</a>
+        <a class="btn btn-ghost btn-sm" href="https://github.com" target="_blank" rel="noreferrer">GitHub</a>
         <a class="btn btn-cobalt btn-sm" href="/try">Try it live</a>
       </div>
     </div>
@@ -420,16 +409,7 @@
         <div class="step"><span class="step-k">STEP 3</span><h3>Ship with receipts</h3><p>Generated tests, docs and gas notes go straight into your repo.</p></div>
       </div>
 
-      <!-- try banner -->
-      <div class="tryband">
-        <a class="tryband-card" href="/try" aria-label="Open the live tool">
-          <div>
-            <h2>Paste an address. <span class="grad">Get the truth.</span></h2>
-            <p>The live tool runs the real engine on any verified mainnet contract. Free to try, right now.</p>
-          </div>
-          <div class="fake-input"><span>0x contract address...</span><span class="btn btn-cobalt btn-sm">Explain</span></div>
-        </a>
-      </div>
+      <!-- try banner removed: the hero Try it live button already covers this -->
     </section>
 
     <!-- ============ AGENTS ============ -->
@@ -571,8 +551,8 @@ x402-price: <span class="c">0.002 USDC</span>
         <a href="/blog/">Blog</a>
         <a href="/docs/">Docs</a>
         <a href="#faq">FAQ</a>
-        <a href="https://github.com/rohankanojia25/sigil-website" target="_blank" rel="noreferrer">GitHub</a>
-        <a href="https://x.com/use_sigil" target="_blank" rel="noreferrer">X</a>
+        <a href="https://github.com" target="_blank" rel="noreferrer">GitHub</a>
+        <a href="https://x.com" target="_blank" rel="noreferrer">X</a>
       </nav>
       <p class="footer-fine">Open source · Built for Solidity, Rust and Move · Simulation is local and read only · Sigil is a copilot, not a substitute for an audit</p>
     </div>
